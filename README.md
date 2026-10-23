@@ -7,8 +7,10 @@ These allocators and containers along with D3D12MA (D3D12 Memory Allocator) and 
 
 All our bc_ containers use our own hybrid_pool_allocator backed by systems_slab allocator backed by malloc to minimize malloc calls to minimum and always have move working on containers for maximum performance.  
 Another big benefit of our containers is very fast compile times which is a big issue with std containers. And if our containers are used it will be binary compatible on all compilers unlike std containers. For use with 3rd party libraries one will need to take data from their containers to our containers just like one does if they use std containers and other library uses different containers.  
+
 Our open addressing hash map containers are based on excellent martinus/unordered_dense and wangyi-fudan/wyhash.
 We use our own containers because node based std containers do not expose node size in portable way so we can not use our allocators as std allocator or std::pmr allocator (which also have the same limitation) with std containers.  
+
 If someone wants to use std containers only for compatibility with their code base we provide bcs_ open addressing hash map, set, ordered map, ordered set, segmented deque.
 
 Details of library are below :-  
