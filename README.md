@@ -11,7 +11,7 @@ Another big benefit of our containers is very fast compile times which is a big 
 Our open addressing hash map containers are based on excellent martinus/unordered_dense and wangyi-fudan/wyhash.
 We use our own containers because node based std containers do not expose node size in portable way so we can not use our allocators as std allocator or std::pmr allocator (which also have the same limitation) with std containers.  
 
-If someone wants to use std containers only for compatibility with their code base we provide bcs_ open addressing hash map, set, ordered map, ordered set, segmented deque.
+If someone wants to use std containers only for compatibility with their code base we provide bcs_ open addressing hash map, set, ordered map, ordered set, segmented deque which are missing in C++ std library.
 
 Details of library are below :-  
 
