@@ -2,7 +2,7 @@
 game engine data structures  
 This library uses AI generated code.  
 
-This library contains High Performance allocators, containers and ECS library for use with a Game Engine.  
+This library contains High Performance allocators, containers and ECS (like EnTT) library for use with a Game Engine.  
 These allocators and containers along with D3D12MA (D3D12 Memory Allocator) and VMA (Vulkan Memory Allocator) are sufficient for even AAA modern games.  
 
 All our bc_ containers use our own hybrid_pool_allocator backed by systems_slab allocator backed by malloc to minimize malloc calls to minimum and always have move working on containers for maximum performance.  
