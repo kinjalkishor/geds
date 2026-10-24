@@ -144,3 +144,44 @@ Destroying an entity removes it from every storage; `get<T>(e)` returns `nullptr
 - `basic_string::npos` is signed `ptrdiff_t(-1)` — internally consistent, but not `std::string::npos`-compatible.
 
 Header-only. No dependencies beyond the C/C++ standard library.
+
+---
+## Thread Safety
+
+The library is built for **single-threaded container use with per-thread allocator ownership**, with one deliberate exception for cross-thread pipelines.
+
+| Component | Thread safe | Notes |
+|---|---|---|
+| `atomic_ring_buffer<T>` | ✅ SPSC | Lock-free. Exactly one producer, exactly one consumer. |
+| `systems_slab` | ✅ Yes | Spinlock-protected freelists. |
+| `aligned_alloc_raw` / `alloc_raw` | ✅ Yes | `posix_memalign` / `_aligned_malloc`. |
+| `hybrid_pool_allocator` | ⚠️ Per-thread | One pool per thread. Sharing one pool across threads is UB. |
+| `set_active_pool` / `get_active_pool` | ✅ Yes | `thread_local`. |
+| Every other container | ❌ No | No synchronization. Same model as `std::`. |
+| `ecs::world` | ❌ No | Single-threaded. |
+
+**Allocator lifetime rule:** `df::` containers route through the thread-local active pool. A container must be created, used, and destroyed on a thread with the same (or no) pool registered. `sdf::` containers always use `aligned_alloc_raw` and have no such constraint — safe to create on one thread and destroy on another (still not safe for concurrent mutation).
+
+---
+## Performance vs. STL / EASTL / ETL
+
+No formal benchmarks yet — this is a design-level comparison, not measured numbers. Treat it as a roadmap, not a claim.
+
+| Aspect | `df::` | `std::` | EASTL | ETL |
+|---|---|---|---|---|
+| **Allocation** | Pool-backed, per-thread, size-classed | General-purpose `malloc` | Allocator-parameterized, pool-friendly | No dynamic allocation (fixed-capacity) |
+| **Hot-path allocations** | O(1), no malloc after warm-up | O(1) but `malloc` per call | O(1) | Zero |
+| **Iterator debug overhead** | None | Implementation-defined | Heavy (`EA_DEBUG`) | None |
+| **Exception use** | None on container paths | Throws on `at`, `reserve` | Configurable | None |
+| **Type size** | Minimal (`ptr`, `len`, `cap`) | Implementation-defined | Larger in debug | Fixed inline |
+| **Compile time** | Low (single-header, no traits metaprogramming) | High | High | Moderate |
+
+**Expected characteristics:**
+
+- **vs. `std::`** — `df::` containers should match or beat `std::vector` / `std::deque` for allocation-heavy workloads because the pool eliminates per-node `malloc` calls. `unord_dense_map` (ankerl-style) is likely faster than `std::unordered_map` for lookup-heavy code. `map` and `unordered_map` are structurally similar to `std::` and should be roughly comparable.
+- **vs. EASTL** — EASTL is more mature and has deeper optimizer hooks; expect `df::` to be competitive on allocation but not necessarily faster on raw iteration. EASTL's debug builds are much heavier.
+- **vs. ETL** — ETL has **zero heap allocation** by design and wins outright on determinism and embedded use. `df::` trades that for unbounded growth.
+
+**The real win** is allocator integration: the same container code runs pool-backed inside the engine and malloc-backed elsewhere (`sdf::`), with no API change. EASTL requires allocator plumbing per container; ETL forbids growth entirely.
+
+Benchmarks against STL/EASTL/ETL are a **TODO** — contributions welcome.
