@@ -6,7 +6,7 @@ This library contains High Performance allocators, containers and ECS (EnTT like
 These allocators and containers along with D3D12MA (D3D12 Memory Allocator) and VMA (Vulkan Memory Allocator) are sufficient even for AAA modern games.  
 
 All our bc_ containers use our own hybrid_pool_allocator backed by systems_slab allocator backed by malloc to minimize malloc calls to minimum. Single allocator is necessary to have move working on containers for maximum performance, if you use std::alllocator interface then 2 containers using 2 different allocators (any functions taking containers will need to template on allocator type also) are 2 different types and if using std::pmr allocators container types are same but allocator types will not match thus disabling moves between them.  
-Our all containers use ptrdiff_t platform defined maximum signed type for size internally, use size() for unsigned count and ssize() for signed count just like std containers.
+Our all containers use ptrdiff_t platform defined maximum signed type for size internally, use size() for unsigned count and ssize() for signed count just like std containers.  
 Another big benefit of our containers is very fast compile times which is a big issue with std containers. And if our containers are used it will be binary compatible on all compilers unlike std containers. For use with 3rd party libraries one will need to take data from their containers to our containers just like one does if they use std containers and other library uses different containers.  
 
 Our open addressing hash map containers are based on excellent martinus/unordered_dense and wangyi-fudan/wyhash.
